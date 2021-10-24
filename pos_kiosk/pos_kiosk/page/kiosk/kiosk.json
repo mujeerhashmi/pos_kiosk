@@ -1,0 +1,21 @@
+{
+ "content": null,
+ "creation": "2021-10-07 20:47:24.000913",
+ "docstatus": 0,
+ "doctype": "Page",
+ "icon": "fa fa-th",
+ "idx": 0,
+ "modified": "2021-10-07 21:29:59.062193",
+ "modified_by": "Administrator",
+ "module": "Pos Kiosk",
+ "name": "kiosk",
+ "owner": "Administrator",
+ "page_name": "Kiosk",
+ "restrict_to_domain": "Retail",
+ "roles": [],
+ "script": null,
+ "standard": "Yes",
+ "style": null,
+ "system_page": 0,
+ "title": "Balsam Pharmacy"
+}

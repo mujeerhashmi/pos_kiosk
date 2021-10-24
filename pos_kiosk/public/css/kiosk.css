@@ -1,0 +1,69 @@
+body {
+  background-color: #2a4bee;
+  width: 100%;
+  height: 100%;
+  padding: 15px;
+}
+.content {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  width: 80% ;
+  border-radius: 25px;
+  border: none;
+  padding: 50px;
+  text-align: center;
+}
+.big-heading {
+  font-family: "Poppins";
+  font-size: 45px;
+  margin-bottom: 50px;
+}
+.small-heading {
+  font-size: 22px;
+  font-family: "Raleway";
+  margin-bottom: 0px;
+}
+.kiosk-form {
+  margin-top: 40px;
+}
+.text-field {
+  background-color: #e6e6e6;
+  padding: 25px;
+  text-align: center;
+  height: 80px;
+  border-radius: 10px;
+  font-size: 25px;
+  margin-bottom: 50px;
+}
+.btn {
+  height: 80px;
+  border-radius: 10px;
+  font-family: "Poppins";
+  font-size: 25px;
+  font-weight: 700;
+  width: 100%;
+  margin-bottom: 10px;
+}
+.customer-caption {
+  font-size: 35px;
+  font-family: 'Poppins';
+  float: left;
+  padding-top: 20px;
+  margin-bottom: 0px;
+}
+.customer-field {
+  font-family: 'Poppins';
+  font-size: 55px;
+  margin-bottom: 50px;
+}
+.icon-style {
+  font-size: 40px;
+  padding: 20px;
+  color: grey;
+  margin-left: 10px;
+  background-color: #e6e6e6;
+  border-radius: 10px;
+}

@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include pos_kiosk *.css
+recursive-include pos_kiosk *.csv
+recursive-include pos_kiosk *.html
+recursive-include pos_kiosk *.ico
+recursive-include pos_kiosk *.js
+recursive-include pos_kiosk *.json
+recursive-include pos_kiosk *.md
+recursive-include pos_kiosk *.png
+recursive-include pos_kiosk *.py
+recursive-include pos_kiosk *.svg
+recursive-include pos_kiosk *.txt
+recursive-exclude pos_kiosk *.pyc
