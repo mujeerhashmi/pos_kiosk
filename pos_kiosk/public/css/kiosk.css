@@ -47,8 +47,11 @@ body {
   width: 100%;
   margin-bottom: 10px;
 }
+.cart-wrapper {
+  margin-bottom: 20px;
+}
 .customer-caption {
-  font-size: 35px;
+  font-size: 30px;
   font-family: 'Poppins';
   float: left;
   padding-top: 20px;
@@ -56,7 +59,7 @@ body {
 }
 .customer-field {
   font-family: 'Poppins';
-  font-size: 55px;
+  font-size: 45px;
   margin-bottom: 50px;
 }
 .icon-style {
@@ -66,4 +69,40 @@ body {
   margin-left: 10px;
   background-color: #e6e6e6;
   border-radius: 10px;
+}
+.search-field input{
+  height: 50px;  
+  background-color: #e6e6e6;
+}
+.list-item--head {
+  font-size: 16px;
+  font-weight: bold;
+  border-bottom: 2px solid #e21331;
+  border-width: 3px;
+  background-color: #e6e6e6;
+}
+.list-item {
+  background-color: #e6e6e6;
+}
+.footer-row {
+  font-size: 14px;
+  text-align: right;
+  font-weight: bold;
+}
+.footer-numbers {
+  color: #2A4BEE;
+  font-weight: bold;
+}
+.empty-state {
+  margin: 10px;
+  font-size: 14px;
+}
+.cart-items .btn {
+  height: 30px;
+  border-radius: 10px;
+  font-family: "Poppins";
+  font-size: 20px;
+  font-weight: 700;
+  width: 100%;
+  margin-bottom: 10px;
 }
