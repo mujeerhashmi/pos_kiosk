@@ -4,16 +4,18 @@
 from __future__ import unicode_literals
 import frappe
 
+
 @frappe.whitelist()
 def make_customer(customer_name, customer_phone):
-    if frappe.db.get_list("Contact", filters= { 'phone': customer_phone }):
+    if frappe.db.get_list("Contact", filters={'phone': customer_phone}):
         # Customer already exists
-        return None           
+        return None
     else:
-        customer = frappe.get_doc({
-            'doctype': 'Customer',
-            'customer_name': customer_name
-            }).insert(ignore_permissions=True, ignore_mandatory=True)
+        customer_doc = frappe.new_doc('Customer')
+        customer_doc.customer_name = customer_name
+        customer_doc.flags.ignore_mandatory = True
+        customer_doc.save(ignore_permissions=True)
+        frappe.db.commit()
 
         contact = frappe.get_doc({
             'doctype': 'Contact',
@@ -21,6 +23,10 @@ def make_customer(customer_name, customer_phone):
             'phone': customer_phone,
             'is_primary_contact': 1
         })
-        contact.append('links', dict(link_doctype='Customer', link_name=customer))
+        contact.append('links', {
+            'link_doctype': 'Customer',
+            'link_name': customer_doc.name
+        })
         contact.insert(ignore_permissions=True)
-        return customer
+        frappe.db.commit()
+        return customer_doc.name

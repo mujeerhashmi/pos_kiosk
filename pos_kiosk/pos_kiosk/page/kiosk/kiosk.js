@@ -194,27 +194,27 @@ erpnext.pos.PointOfSale = class PointOfSale {
 			});        
 		} else {        
 			frappe.call({
-			method: "pos_kiosk.pos_kiosk.page.kiosk.make_customer",
-			args: {
-				customer_name: me.$register_customer_name[0].value,
-				customer_phone: me.$register_customer_phone[0].value
-			},
-			callback: function(r) {
-				console.log(r)
-				if (!r.message) {
-				frappe.show_alert({
-					indicator: "red",
-					message: __("This Phone Number already exists"),
-				});
-				} else {
-				frappe.show_alert({
-					indicator: "green",
-					message: __("You are Successfully Registered"),
-				});
-				me.wrapper.find(".registration-screen").css("display", "none");
-				me.make_new_invoice(r.message.customer, me);
+				method: "pos_kiosk.pos_kiosk.page.kiosk.kiosk.make_customer",
+				args: {
+					customer_name: me.$register_customer_name[0].value,
+					customer_phone: me.$register_customer_phone[0].value
+				},
+				callback: function(r) {
+					console.log(r)
+					if (!r.message) {
+						frappe.show_alert({
+							indicator: "red",
+							message: __("This Phone Number already exists"),
+						});
+					} else {
+						frappe.show_alert({
+							indicator: "green",
+							message: __("You are Successfully Registered"),
+						});
+						me.wrapper.find(".registration-screen").css("display", "none");
+						me.make_new_invoice(r.message, me);
+					}
 				}
-			}
 			});
 		}            
 	}
@@ -885,6 +885,7 @@ class POSCart {
 
 		if (this.exists(item.item_code, item.batch_no)) {
 			// update quantity
+			console.log(item.batch_no)
 			this.update_item(item);
 		} else if (flt(item.qty) > 0.0) {
 			// add to cart
@@ -1176,6 +1177,7 @@ class POSItems {
 				const items = this.search_index[search_term];
 				this.items = items;
         		// this.render_items(items);
+				console.log(this.items);
 				this.set_item_in_the_cart(items);
 				return;
 			}
@@ -1192,6 +1194,7 @@ class POSItems {
 
 				this.items = items;
         		// this.render_items(items);
+				console.log(this.items);
 				this.set_item_in_the_cart(items, serial_no, batch_no, barcode);
 			});
 	}
@@ -1205,6 +1208,7 @@ class POSItems {
 		}
 
 		if (batch_no) {
+			console.log(batch_no);
 			this.events.update_cart(items[0].item_code,
 				'batch_no', batch_no);
 			this.reset_search_field();
