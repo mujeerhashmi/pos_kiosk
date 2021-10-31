@@ -38,7 +38,7 @@ body {
   font-size: 25px;
   margin-bottom: 50px;
 }
-.btn {
+.launch-screen .btn, .registration-screen .btn, .cart-screen .btn {
   height: 80px;
   border-radius: 10px;
   font-family: "Poppins";

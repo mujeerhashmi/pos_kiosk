@@ -176,7 +176,7 @@ erpnext.pos.PointOfSale = class PointOfSale {
               ),
             });
           });
-      }
+    }
   }
 
 	register_customer(me) {  
@@ -472,6 +472,8 @@ erpnext.pos.PointOfSale = class PointOfSale {
 
 		// add to cur_frm
 		const item = this.frm.add_child('items', args);
+		console.log("SI Item")
+		console.log(item);
 		frappe.flags.hide_serial_batch_dialog = true;
 
 		frappe.run_serially([
@@ -495,6 +497,39 @@ erpnext.pos.PointOfSale = class PointOfSale {
 
 	select_batch_and_serial_no(row) {
 		frappe.dom.unfreeze();
+		// const me = this;
+		// frappe.prompt([{
+		// 	'fieldtype': 'Link',
+		// 	'read_only': 0,
+		// 	'fieldname': 'batch_no',
+		// 	'options': 'Batch',
+		// 	'label': __('Select Batch'),
+		// 	'in_list_view': 1,
+		// 	get_query: function () {
+		// 		return {
+		// 			filters: {
+		// 				item_code: row.item_code						
+		// 			},
+		// 			query: 'erpnext.controllers.queries.get_batch_no'
+		// 		};
+		// 	}
+		// }],
+		// function(values){			
+		// 	row.batch_no = values.batch_no;
+		// 	me.update_item_in_frm(row, 'qty', row.qty)
+		// 		.then(() => {
+		// 			// update cart
+		// 			frappe.run_serially([
+		// 				() => {
+		// 					if (row.qty === 0) {
+		// 						frappe.model.clear_doc(row.doctype, row.name);
+		// 					}
+		// 				},
+		// 				() => me.update_cart_data(row)
+		// 			]);
+		// 		});
+		// },
+		// __('Select Batch No'))
 
 		erpnext.show_serial_batch_selector(this.frm, row, () => {
 			this.frm.doc.items.forEach(item => {
@@ -1177,6 +1212,7 @@ class POSItems {
 				const items = this.search_index[search_term];
 				this.items = items;
         		// this.render_items(items);
+				console.log("memorize filter_items:")
 				console.log(this.items);
 				this.set_item_in_the_cart(items);
 				return;
@@ -1194,6 +1230,7 @@ class POSItems {
 
 				this.items = items;
         		// this.render_items(items);
+				console.log("filter_items:")
 				console.log(this.items);
 				this.set_item_in_the_cart(items, serial_no, batch_no, barcode);
 			});
@@ -1208,6 +1245,7 @@ class POSItems {
 		}
 
 		if (batch_no) {
+			console.log("set_item_in_the_cart");
 			console.log(batch_no);
 			this.events.update_cart(items[0].item_code,
 				'batch_no', batch_no);
@@ -1215,7 +1253,7 @@ class POSItems {
 			return;
 		}
 
-		if (items.length === 1 && (serial_no || batch_no || barcode)) {
+		if (items.length === 1 && (serial_no || batch_no || barcode || items[0].item_code)) {
 			this.events.update_cart(items[0].item_code,
 				'qty', '+1');
 			this.reset_search_field();
