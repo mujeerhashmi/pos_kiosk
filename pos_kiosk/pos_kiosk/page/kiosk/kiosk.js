@@ -534,7 +534,7 @@ erpnext.pos.PointOfSale = class PointOfSale {
 			row.batch_no = values.batch_no;
 			refresh_field("items");
 			console.log(row, values.batch_no);
-			me.update_cart_data(item);
+			me.update_cart_data(row);
 		}, __('Select Batch No'))
 
 		// erpnext.show_serial_batch_selector(this.frm, row, () => {
