@@ -47,6 +47,14 @@ body {
   width: 100%;
   margin-bottom: 10px;
 }
+.cart-screen .reset-cart, .cart-screen .cancel-cart {
+  float: right;
+  width: 25%;
+  height: 40px;
+  align-items: center;
+  margin-left: 5px;
+  margin-bottom: 20px;
+}
 .cart-wrapper {
   margin-bottom: 20px;
 }

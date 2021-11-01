@@ -72,8 +72,11 @@ erpnext.pos.PointOfSale = class PointOfSale {
             </form>
           </div>
 
-          <div class="cart-screen">		  	
-            <div class="row">
+          <div class="cart-screen">
+		  	<div class="row">				
+				<button type="button" class="btn btn-danger cancel-cart" style="width: 25%;float: right;">CANCEL</button>
+			</div>
+		  	<div class="row">
               <div class="col-md-4">
                   <span class="customer-caption">
                       <i class="fa fa-user"></i>
@@ -84,7 +87,7 @@ erpnext.pos.PointOfSale = class PointOfSale {
                   <span class="customer-field"/>
               </div>
             </div>
-            <div class="row item-search">                                        
+			<div class="row item-search">
             </div>
             <div class="row">              
               <div class="cart-container">
@@ -145,6 +148,15 @@ erpnext.pos.PointOfSale = class PointOfSale {
       me.wrapper.find(".registration-screen").css("display", "none");
       me.wrapper.find(".launch-screen").css("display", "block");
     });
+
+	// me.wrapper.on("click", ".reset-cart", function() {
+	// 	me.reset_cart();		
+	// 	me.frm.set_value('customer', me.wrapper.find('.customer-field')[0].outerText);
+	// });
+
+	me.wrapper.on("click", ".cancel-cart", function() {
+		me.go_to_launch();
+	});
   }
 
   check_customer(me) {
@@ -226,21 +238,23 @@ erpnext.pos.PointOfSale = class PointOfSale {
 			() => this.make_sales_invoice_frm(),
 			() => this.set_pos_profile_data(),
 			() => {
+				//Customer Field
+				frappe.call({
+					method: "frappe.client.get",
+					args: {
+						doctype: "Customer",
+						name: customer
+					}, callback: function (data) {
+						me.frm.set_value('customer', customer);
+						me.wrapper.find('.customer-field').append(data.message.customer_name);
+					}
+				});
+			},
+			() => {
 				if (this.cart) {
 					this.cart.frm = this.frm;
 					this.cart.reset();
-				} else {
-					//Customer Field
-					frappe.call({
-						method: "frappe.client.get",
-						args: {
-							doctype: "Customer",
-							name: customer
-						}, callback: function (data) {
-							me.frm.set_value('customer', customer);
-							me.wrapper.find('.customer-field').append(data.message.customer_name);
-						}
-					});
+				} else {					
 					this.make_items();
 					this.make_cart();
 				}
@@ -249,11 +263,11 @@ erpnext.pos.PointOfSale = class PointOfSale {
 		]);                  
   	}
 	
-	reset_cart() {
-		this.cart.frm = this.frm;
-		this.cart.reset();
-		this.items.reset_search_field();
-	}
+	// reset_cart() {
+	// 	this.cart.frm = this.frm;		
+	// 	this.cart.reset();
+	// 	this.items.reset_search_field();
+	// }
     
   	make_sales_invoice_frm() {
 		const doctype = 'Sales Invoice';
@@ -360,7 +374,7 @@ erpnext.pos.PointOfSale = class PointOfSale {
 					}
 				},
 				on_select_change: () => {					
-					this.set_form_action();
+					// this.set_form_action();
 				},
 				get_item_details: (item_code) => {
 					return this.items.get(item_code);
@@ -459,7 +473,7 @@ erpnext.pos.PointOfSale = class PointOfSale {
 					.then(() => {
 						// update cart
 						this.update_cart_data(item);
-						this.set_form_action();
+						// this.set_form_action();
 					});
 			}
 			return;
@@ -467,12 +481,14 @@ erpnext.pos.PointOfSale = class PointOfSale {
 
 		let args = { item_code: item_code };
 		if (in_list(['serial_no', 'batch_no'], field)) {
+			console.log("Field:"+field);
+			console.log(value);
 			args[field] = value;
 		}
 
 		// add to cur_frm
 		const item = this.frm.add_child('items', args);
-		console.log("SI Item")
+		console.log("SI Item");
 		console.log(item);
 		frappe.flags.hide_serial_batch_dialog = true;
 
@@ -497,58 +513,48 @@ erpnext.pos.PointOfSale = class PointOfSale {
 
 	select_batch_and_serial_no(row) {
 		frappe.dom.unfreeze();
-		// const me = this;
-		// frappe.prompt([{
-		// 	'fieldtype': 'Link',
-		// 	'read_only': 0,
-		// 	'fieldname': 'batch_no',
-		// 	'options': 'Batch',
-		// 	'label': __('Select Batch'),
-		// 	'in_list_view': 1,
-		// 	get_query: function () {
-		// 		return {
-		// 			filters: {
-		// 				item_code: row.item_code						
-		// 			},
-		// 			query: 'erpnext.controllers.queries.get_batch_no'
-		// 		};
-		// 	}
-		// }],
-		// function(values){			
-		// 	row.batch_no = values.batch_no;
-		// 	me.update_item_in_frm(row, 'qty', row.qty)
-		// 		.then(() => {
-		// 			// update cart
-		// 			frappe.run_serially([
-		// 				() => {
-		// 					if (row.qty === 0) {
-		// 						frappe.model.clear_doc(row.doctype, row.name);
-		// 					}
-		// 				},
-		// 				() => me.update_cart_data(row)
-		// 			]);
-		// 		});
-		// },
-		// __('Select Batch No'))
+		const me = this;
+		frappe.prompt([{
+			'fieldtype': 'Link',
+			'read_only': 0,
+			'fieldname': 'batch_no',
+			'options': 'Batch',
+			'label': __('Select Batch'),
+			'in_list_view': 1,
+			get_query: function () {
+				return {
+					filters: {
+						item_code: row.item_code
+					},
+					query: 'erpnext.controllers.queries.get_batch_no'
+				};
+			}
+		}],
+		function(values){			
+			row.batch_no = values.batch_no;
+			refresh_field("items");
+			console.log(row, values.batch_no);
+			me.update_cart_data(item);
+		}, __('Select Batch No'))
 
-		erpnext.show_serial_batch_selector(this.frm, row, () => {
-			this.frm.doc.items.forEach(item => {
-				this.update_item_in_frm(item, 'qty', item.qty)
-					.then(() => {
-						// update cart
-						frappe.run_serially([
-							() => {
-								if (item.qty === 0) {
-									frappe.model.clear_doc(item.doctype, item.name);
-								}
-							},
-							() => this.update_cart_data(item)
-						]);
-					});
-			})
-		}, () => {
-			this.on_close(row);
-		}, true);
+		// erpnext.show_serial_batch_selector(this.frm, row, () => {
+		// 	this.frm.doc.items.forEach(item => {
+		// 		this.update_item_in_frm(item, 'qty', item.qty)
+		// 			.then(() => {
+		// 				// update cart
+		// 				frappe.run_serially([
+		// 					() => {
+		// 						if (item.qty === 0) {
+		// 							frappe.model.clear_doc(item.doctype, item.name);
+		// 						}
+		// 					},
+		// 					() => this.update_cart_data(item)
+		// 				]);
+		// 			});
+		// 	})
+		// }, () => {
+		// 	this.on_close(row);
+		// }, true);
 	}
 
 	on_close(item) {
@@ -577,6 +583,10 @@ erpnext.pos.PointOfSale = class PointOfSale {
 					item["qty"] = serial_nos.filter(d => {
 						return d!=="";
 					}).length;
+				}
+				if(field == "batch_no" && value) {					
+					item.qty += 1;
+					console.log(item.qty);
 				}
 			} else {
 				return frappe.model.set_value(item.doctype, item.name, field, value);
@@ -615,7 +625,7 @@ erpnext.pos.PointOfSale = class PointOfSale {
 					});
 
 					this.toggle_editing();
-					this.set_form_action();
+					// this.set_form_action();
 					this.set_primary_action_in_modal();
 				}
 			});
@@ -632,33 +642,43 @@ erpnext.pos.PointOfSale = class PointOfSale {
 
 			$(this.frm.msgbox.body).find('.btn-default').on('click', () => {
 				this.frm.msgbox.hide();
-				this.make_new_invoice();
+				this.go_to_launch();
+				// this.make_new_invoice();
+				frappe.dom.unfreeze();	
 			})
 		}
 	}
 
-	set_form_action() {
-		if(this.frm.doc.docstatus == 1 || (this.frm.doc.allow_print_before_pay == 1&&this.frm.doc.items.length>0)){
-			this.page.set_secondary_action(__("Print"), async() => {
-				if(this.frm.doc.docstatus != 1 ){
-					await this.frm.save();
-				}
-				this.frm.print_preview.printit(true);
-			});
-		}
-		if(this.frm.doc.items.length == 0){
-			this.page.clear_secondary_action();
-		}
-
-		if (this.frm.doc.docstatus == 1) {
-			this.page.set_primary_action(__("New"), () => {
-				this.make_new_invoice();
-			});
-			this.page.add_menu_item(__("Email"), () => {
-				this.frm.email_doc();
-			});
-		}
+	go_to_launch() {
+		this.$customer_phone[0].value = "";
+		this.wrapper.find('.customer-field').empty();
+		this.wrapper.find(".launch-screen").css("display", "block");
+		this.wrapper.find(".registration-screen").css("display", "none");
+		this.wrapper.find(".cart-screen").css("display", "none");
 	}
+
+	// set_form_action() {
+	// 	if(this.frm.doc.docstatus == 1 || (this.frm.doc.allow_print_before_pay == 1&&this.frm.doc.items.length>0)){
+	// 		this.page.set_secondary_action(__("Print"), async() => {
+	// 			if(this.frm.doc.docstatus != 1 ){
+	// 				await this.frm.save();
+	// 			}
+	// 			this.frm.print_preview.printit(true);
+	// 		});
+	// 	}
+	// 	if(this.frm.doc.items.length == 0){
+	// 		this.page.clear_secondary_action();
+	// 	}
+
+	// 	if (this.frm.doc.docstatus == 1) {
+	// 		this.page.set_primary_action(__("New"), () => {
+	// 			this.make_new_invoice();
+	// 		});
+	// 		this.page.add_menu_item(__("Email"), () => {
+	// 			this.frm.email_doc();
+	// 		});
+	// 	}
+	// }
 };
 
 const [Qty,Disc,Rate,Del,Pay] = [__("Qty"), __('Disc'), __('Rate'), __('Del'), __('Pay')];
@@ -710,7 +730,7 @@ class POSCart {
 					</div>
 				</div>
 				<div class="row form-group">
-					<button type="button" class="btn btn-danger submit-cart">PRESS TO PAY</button>
+					<button type="button" class="btn btn-success submit-cart">PRESS TO PAY</button>
 					<div class="col-sm-6 loyalty-program-section">
 						<div class="loyalty-program-field"> </div>
 					</div>
@@ -920,6 +940,7 @@ class POSCart {
 
 		if (this.exists(item.item_code, item.batch_no)) {
 			// update quantity
+			console.log("add_item")
 			console.log(item.batch_no)
 			this.update_item(item);
 		} else if (flt(item.qty) > 0.0) {
@@ -1211,9 +1232,7 @@ class POSItems {
 			if (this.search_index[search_term]) {
 				const items = this.search_index[search_term];
 				this.items = items;
-        		// this.render_items(items);
-				console.log("memorize filter_items:")
-				console.log(this.items);
+        		// this.render_items(items);				
 				this.set_item_in_the_cart(items);
 				return;
 			}
@@ -1224,14 +1243,12 @@ class POSItems {
 
 		this.get_items({search_value: search_term, item_group })
 			.then(({ items, serial_no, batch_no, barcode }) => {
-				if (search_term && !barcode) {
+				if (search_term && !barcode && !batch_no && !serial_no) {
 					this.search_index[search_term] = items;
 				}
 
 				this.items = items;
-        		// this.render_items(items);
-				console.log("filter_items:")
-				console.log(this.items);
+        		// this.render_items(items);				
 				this.set_item_in_the_cart(items, serial_no, batch_no, barcode);
 			});
 	}
