@@ -18,8 +18,7 @@ erpnext.pos.PointOfSale = class PointOfSale {
     this.wrapper = $(wrapper).find(".layout-main-section");
     this.page = wrapper.page;
     const assets = [
-      'assets/pos_kiosk/css/kiosk.css',
-      'assets/erpnext/js/pos/clusterize.js'
+      'assets/pos_kiosk/css/kiosk.css'
     ];
 
     frappe.require(assets, () => {
@@ -258,9 +257,8 @@ erpnext.pos.PointOfSale = class PointOfSale {
 					this.make_items();
 					this.make_cart();
 				}
-				this.toggle_editing(true);
 			},
-		]);                  
+		]);
   	}
 	
 	// reset_cart() {
@@ -427,22 +425,7 @@ erpnext.pos.PointOfSale = class PointOfSale {
 				this.items.reset_items();
 			}
 		})    
-	}
-
-	toggle_editing(flag) {
-		let disabled;
-		if (flag !== undefined) {
-			disabled = !flag;
-		} else {
-			disabled = this.frm.doc.docstatus == 1 ? true: false;
-		}
-		const pointer_events = disabled ? 'none' : 'inherit';
-
-		this.wrapper.find('input, button, select').prop("disabled", disabled);
-		this.wrapper.find('.cart-container').css('pointer-events', pointer_events);
-
-		this.page.clear_actions();
-	}
+	}	
 
 	update_item_in_cart(item_code, field='qty', value=1, batch_no) {
 		frappe.dom.freeze();
@@ -451,7 +434,8 @@ erpnext.pos.PointOfSale = class PointOfSale {
 			const search_value = batch_no || item_code;
 			const item = this.frm.doc.items.find(i => i[search_field] === search_value);
 			frappe.flags.hide_serial_batch_dialog = false;
-
+			console.log("Existing Item");
+			console.log(item);
 			if (typeof value === 'string' && !in_list(['serial_no', 'batch_no'], field)) {
 				// value can be of type '+1' or '-1'
 				value = item[field] + flt(value);
@@ -460,13 +444,19 @@ erpnext.pos.PointOfSale = class PointOfSale {
 			if(field === 'serial_no') {
 				value = item.serial_no + '\n'+ value;
 			}
+			
+			if((field === 'batch_no') && (flt(item.qty) < flt(item.actual_batch_qty))) {				
+				item.qty += 1;
+				item.amount = flt(item.rate) * flt(item.qty);
+				console.log(item.qty);
+			}
 
 			// if actual_batch_qty and actual_qty if there is only one batch. In such
 			// a case, no point showing the dialog
 			const show_dialog = item.has_serial_no || item.has_batch_no;
-
+			
 			if (show_dialog && field == 'qty' && ((!item.batch_no && item.has_batch_no) ||
-				(item.has_serial_no) || (item.actual_batch_qty != item.actual_qty)) ) {
+				(item.has_serial_no)) ) {
 				this.select_batch_and_serial_no(item);
 			} else {
 				this.update_item_in_frm(item, field, value)
@@ -478,19 +468,17 @@ erpnext.pos.PointOfSale = class PointOfSale {
 			}
 			return;
 		}
-
+		
 		let args = { item_code: item_code };
 		if (in_list(['serial_no', 'batch_no'], field)) {
-			console.log("Field:"+field);
-			console.log(value);
 			args[field] = value;
 		}
 
 		// add to cur_frm
-		const item = this.frm.add_child('items', args);
-		console.log("SI Item");
+		const item = this.frm.add_child('items', args);	
+		console.log("New Item");
 		console.log(item);
-		frappe.flags.hide_serial_batch_dialog = true;
+		frappe.flags.hide_serial_batch_dialog = true;		
 
 		frappe.run_serially([
 			() => this.frm.script_manager.trigger('item_code', item.doctype, item.name),
@@ -530,11 +518,21 @@ erpnext.pos.PointOfSale = class PointOfSale {
 				};
 			}
 		}],
-		function(values){			
-			row.batch_no = values.batch_no;
-			refresh_field("items");
-			console.log(row, values.batch_no);
-			me.update_cart_data(row);
+		function(values){
+			if (me.cart.exists(row.item_code, values.batch_no)) {
+				// row = this.frm.doc.items.find(i => i.batch_no === values.batch_no);
+				me.update_item_in_frm(row, 'batch_no', row.batch_no)
+					.then(() => {
+						// update cart
+						me.update_cart_data(row);
+						// this.set_form_action();
+					});
+			} else {				
+				row.batch_no = values.batch_no;
+				console.log("select_batch_and_serial_no: Old Batch");
+				console.log(row);				
+				me.update_cart_data(row);		
+			}			
 		}, __('Select Batch No'))
 
 		// erpnext.show_serial_batch_selector(this.frm, row, () => {
@@ -576,18 +574,14 @@ erpnext.pos.PointOfSale = class PointOfSale {
 			frappe.msgprint(__("Quantity must be positive"));
 			value = item.qty;
 		} else {
-			if (in_list(["qty", "serial_no", "batch"], field)) {
+			if (in_list(["qty", "serial_no", "batch_no"], field)) {
 				item[field] = value;
 				if (field == "serial_no" && value) {
 					let serial_nos = value.split("\n");
 					item["qty"] = serial_nos.filter(d => {
 						return d!=="";
 					}).length;
-				}
-				if(field == "batch_no" && value) {					
-					item.qty += 1;
-					console.log(item.qty);
-				}
+				}				
 			} else {
 				return frappe.model.set_value(item.doctype, item.name, field, value);
 			}
@@ -599,8 +593,6 @@ erpnext.pos.PointOfSale = class PointOfSale {
 					frappe.model.clear_doc(item.doctype, item.name);
 				}
 			})
-
-		return Promise.resolve();
 	}
 
 	make_payment_modal() {
@@ -624,8 +616,6 @@ erpnext.pos.PointOfSale = class PointOfSale {
 						message: __(`Sales invoice ${r.doc.name} created succesfully`)
 					});
 
-					this.toggle_editing();
-					// this.set_form_action();
 					this.set_primary_action_in_modal();
 				}
 			});
@@ -643,8 +633,6 @@ erpnext.pos.PointOfSale = class PointOfSale {
 			$(this.frm.msgbox.body).find('.btn-default').on('click', () => {
 				this.frm.msgbox.hide();
 				this.go_to_launch();
-				// this.make_new_invoice();
-				frappe.dom.unfreeze();	
 			})
 		}
 	}
@@ -656,29 +644,6 @@ erpnext.pos.PointOfSale = class PointOfSale {
 		this.wrapper.find(".registration-screen").css("display", "none");
 		this.wrapper.find(".cart-screen").css("display", "none");
 	}
-
-	// set_form_action() {
-	// 	if(this.frm.doc.docstatus == 1 || (this.frm.doc.allow_print_before_pay == 1&&this.frm.doc.items.length>0)){
-	// 		this.page.set_secondary_action(__("Print"), async() => {
-	// 			if(this.frm.doc.docstatus != 1 ){
-	// 				await this.frm.save();
-	// 			}
-	// 			this.frm.print_preview.printit(true);
-	// 		});
-	// 	}
-	// 	if(this.frm.doc.items.length == 0){
-	// 		this.page.clear_secondary_action();
-	// 	}
-
-	// 	if (this.frm.doc.docstatus == 1) {
-	// 		this.page.set_primary_action(__("New"), () => {
-	// 			this.make_new_invoice();
-	// 		});
-	// 		this.page.add_menu_item(__("Email"), () => {
-	// 			this.frm.email_doc();
-	// 		});
-	// 	}
-	// }
 };
 
 const [Qty,Disc,Rate,Del,Pay] = [__("Qty"), __('Disc'), __('Rate'), __('Del'), __('Pay')];
@@ -707,8 +672,8 @@ class POSCart {
 						<div class="list-item list-item--head">
 							<div class="list-item__content list-item__content--flex-1.5">${__('Item Name')}</div>
 							<div class="list-item__content text-right">${__('Quantity')}</div>
-							<div class="list-item__content text-right">${__('Discount')}</div>
 							<div class="list-item__content text-right">${__('Rate')}</div>
+							<div class="list-item__content text-right">${__('Amount')}</div>
 						</div>
 						<div class="cart-items">
 							<div class="empty-state">
@@ -940,8 +905,6 @@ class POSCart {
 
 		if (this.exists(item.item_code, item.batch_no)) {
 			// update quantity
-			console.log("add_item")
-			console.log(item.batch_no)
 			this.update_item(item);
 		} else if (flt(item.qty) > 0.0) {
 			// add to cart
@@ -964,18 +927,22 @@ class POSCart {
 			const remove_class = indicator_class == 'green' ? 'red' : 'green';
 
 			$item.find('.quantity input').val(item.qty);
-			$item.find('.discount').text(item.discount_percentage + '%');
 			$item.find('.rate').text(format_currency(item.rate, this.frm.doc.currency));
+			$item.find('.amount').text(format_currency(item.amount, this.frm.doc.currency));
 			$item.addClass(indicator_class);
 			$item.removeClass(remove_class);
 		} else {
 			$item.remove();
+			if (this.$cart_items.length == 1) {
+				this.$empty_state.show();
+			}
 		}
 	}
 
 	get_item_html(item) {
 		const is_stock_item = this.get_item_details(item.item_code).is_stock_item;
 		const rate = format_currency(item.rate, this.frm.doc.currency);
+		const amount = format_currency(item.amount, this.frm.doc.currency);
 		const indicator_class = (!is_stock_item || item.actual_qty >= item.qty) ? 'green' : 'red';
 		const batch_no = item.batch_no || '';
 
@@ -987,12 +954,12 @@ class POSCart {
 				</div>
 				<div class="quantity list-item__content text-right">
 					${get_quantity_html(item.qty)}
-				</div>
-				<div class="discount list-item__content text-right">
-					${item.discount_percentage}%
-				</div>
+				</div>				
 				<div class="rate list-item__content text-right">
 					${rate}
+				</div>
+				<div class="amount list-item__content text-right">
+					${amount}
 				</div>
 			</div>
 		`;
@@ -1186,6 +1153,8 @@ class POSItems {
 			parent: this.wrapper.find('.search-field'),
 			render_input: true,
 		});		
+
+		this.search_field.set_focus();
 
 		frappe.ui.keys.on('ctrl+i', () => {
 			this.search_field.set_focus();
