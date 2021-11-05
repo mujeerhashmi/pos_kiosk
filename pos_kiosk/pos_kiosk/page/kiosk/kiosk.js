@@ -445,9 +445,10 @@ erpnext.pos.PointOfSale = class PointOfSale {
 
 	update_item_in_cart(item_code, field='qty', value=1, batch_no) {
 		frappe.dom.freeze();
-		if(this.cart.exists(item_code, batch_no)) {
+		if(this.cart.exists(item_code, field == 'batch_no'? batch_no=value: '')) {
 			const search_field = batch_no ? 'batch_no' : 'item_code';
 			const search_value = batch_no || item_code;
+			console.log(search_field, search_value);
 			const item = this.frm.doc.items.find(i => i[search_field] === search_value);
 			frappe.flags.hide_serial_batch_dialog = false;
 
@@ -495,7 +496,7 @@ erpnext.pos.PointOfSale = class PointOfSale {
 		const item = this.frm.add_child('items', args);
 		console.log("New Item");
 		console.log(item);
-		frappe.flags.hide_serial_batch_dialog = true;		
+		frappe.flags.hide_serial_batch_dialog = true;
 
 		frappe.run_serially([
 			() => this.frm.script_manager.trigger('item_code', item.doctype, item.name),
