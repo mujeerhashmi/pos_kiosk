@@ -652,27 +652,29 @@ erpnext.pos.PointOfSale = class PointOfSale {
 	}
 
 	submit_sales_invoice() {
-		this.frm.savesubmit()
+		this.savesubmit()
 			.then((r) => {
 				if (r && r.doc) {
 					this.frm.doc.docstatus = r.doc.docstatus;
-					
-					cur_frm.print_preview.printit(true);
+										
 					let d = new frappe.ui.Dialog({
-						title: 'Transaction Complete'						
+						title: 'Thank You'
 					});
 					d.$body.append(`
 						<div class="row">
-							Thank You<br>
-							<img class="transaction-complete" src="/assets/pos_kiosk/images/check.png">
+							Transaction Complete<br>
+							<img style="margin: auto; display: block; max-width: 250px; max-height: 250px;"
+								class="transaction-complete" src="/assets/pos_kiosk/images/check.png">
 						</div>
 					`)
 					d.show();
+					cur_frm.print_preview.printit(true);
 					setTimeout(() => {
 						d.hide();
 						this.wrapper.find(".payment-screen").css("display", "none");
 						this.go_to_launch();
-					}, 5000);					
+					}, 5000);
+					
 				}
 			});
 	}
@@ -704,6 +706,39 @@ erpnext.pos.PointOfSale = class PointOfSale {
 			)
 		});
 	}
+
+	savesubmit = function(btn, callback, on_error) {
+		var me = this.frm;
+	
+		let handle_fail = () => {
+			$(btn).prop('disabled', false);
+			if (on_error) {
+				on_error();
+			}
+		};
+	
+		return new Promise(resolve => {
+			me.validate_form_action("Submit");
+			frappe.validated = true;
+			me.script_manager.trigger("before_submit").then(function() {
+				if(!frappe.validated) {
+					handle_fail();
+					return;
+				}
+
+				me.save('Submit', function(r) {
+					if(r.exc) {
+						handle_fail();
+					} else {
+						frappe.utils.play_sound("submit");
+						callback && callback();
+						me.script_manager.trigger("on_submit")
+							.then(() => resolve(me));
+					}
+				}, btn, () => handle_fail(), resolve);
+			});			
+		});
+	};
 };
 
 const [Qty,Disc,Rate,Del,Pay] = [__("Qty"), __('Disc'), __('Rate'), __('Del'), __('Pay')];
