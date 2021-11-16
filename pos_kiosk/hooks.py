@@ -24,9 +24,9 @@ app_license = "MIT"
 
 # include js in page
 # page_js = {"page" : "public/js/file.js"}
-page_js = {
-    "kiosk": ["public/js/pos_page_js.js", "public/js/includes/number_to_words.js"]
-}
+# page_js = {
+#     "kiosk": ["public/js/pos_page_js.js", "public/js/includes/number_to_words.js"]
+# }
 
 # include js in doctype views
 # doctype_js = {"doctype" : "public/js/doctype.js"}
@@ -119,7 +119,7 @@ page_js = {
 # Overriding Whitelisted Methods
 # ------------------------------
 #
-# override_whitelisted_methods = {
-# 	"frappe.desk.doctype.event.event.get_events": "pos_kiosk.event.get_events"
-# }
+override_whitelisted_methods = {
+	"erpnext.stock.get_item_details.get_item_details": "pos_kiosk.api.item.get_item_details"  # noqa
+}
 

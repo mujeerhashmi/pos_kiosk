@@ -1,119 +1,242 @@
 body {
-  background-color: #2a4bee;
+  background-color: white;
+  background-image: url("/assets/pos_kiosk/images/bg.png");
   width: 100%;
   height: 100%;
   padding: 15px;
+  opacity: 90%;
+}
+.page-head {
+  display: none;
 }
 .layout-main-section {
   border: none;
 }
-.content {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background-color: white;
-  width: 80% ;
-  border-radius: 25px;
-  border: none;
-  padding: 50px;
-  text-align: center;
+.small-heading {
+  font-size: 35px;
+  font-family: 'Raleway';
+  margin-bottom: 0px;
+  font-weight: bold;
 }
 .big-heading {
-  font-family: "Poppins";
-  font-size: 45px;
-  margin-bottom: 50px;
+  font-family: 'Poppins';
+  font-size: 55px;
+  margin-bottom: 40px;
+  font-weight: bolder;
 }
-.small-heading {
-  font-size: 22px;
-  font-family: "Raleway";
-  margin-bottom: 0px;
-}
-.kiosk-form {
+
+/* Launch Screen */
+.logo-container {
   margin-top: 40px;
 }
-.text-field {
-  background-color: #e6e6e6;
-  padding: 25px;
+.logo-container h1 {
+  font-size: 50px;
+  font-weight: bold;  
   text-align: center;
-  height: 80px;
-  border-radius: 10px;
-  font-size: 25px;
-  margin-bottom: 50px;
 }
-.launch-screen .btn, .registration-screen .btn, .cart-screen .btn {
-  height: 80px;
+.logo {
+  margin: auto;
+  display: block;
+  max-width: 200px;
+  max-height: 200px;
+}
+.launch-screen,
+.registration-screen,
+.payment-screen
+{
+  padding: 40px;
+  text-align: center;
+}
+.launch-screen .btn,
+.registration-screen .btn,
+.cart-screen .btn,
+.payment-screen .btn
+{
+  height: 150px;
   border-radius: 10px;
   font-family: "Poppins";
-  font-size: 25px;
-  font-weight: 700;
+  font-size: 50px;
+  font-weight: bolder;
   width: 100%;
-  margin-bottom: 10px;
-}
-.cart-screen .reset-cart, .cart-screen .cancel-cart {
-  float: right;
-  width: 25%;
-  height: 40px;
-  align-items: center;
-  margin-left: 5px;
   margin-bottom: 20px;
 }
+.text-field {
+  background-color: #888888;
+  color: white;
+  padding: 25px;
+  text-align: center;
+  height: 150px;
+  border-radius: 10px;
+  font-size: 50px;
+  margin-bottom: 20px;
+}
+.cart-logo {
+  margin-bottom: 40px;
+}
+.launch-screen .register {
+  width: 25%;
+  margin-bottom: 40px;
+}
+.launch-screen .without-registration {
+  margin-top: 40px;
+}
+
+/* Registration Screen */
+.register-btn-back {
+  margin-top: 40px;
+}
+
+/* Cart Screen */
 .cart-wrapper {
   margin-bottom: 20px;
 }
+.cart-screen .cancel-cart {
+  height: 100px;
+  float: right;
+  width: 25%;  
+  text-align: center;
+}
+.cart-screen .submit-cart {
+  height: 100px;
+  text-align: center;
+  border-radius: 10px;
+}
+.customer-detail {
+  margin-bottom: 40px;
+}
 .customer-caption {
-  font-size: 30px;
-  font-family: 'Poppins';
-  float: left;
-  padding-top: 20px;
-  margin-bottom: 0px;
+  font-size: 50px;
+  font-family: "Poppins";
+  font-weight: bold;
+  color: #666666;
 }
 .customer-field {
-  font-family: 'Poppins';
-  font-size: 45px;
-  margin-bottom: 50px;
+  font-family: "Poppins";
+  font-size: 50px;
+  font-weight: bolder;
+  color: black;
 }
-.icon-style {
+.search-field input {
+  color: white;
   font-size: 40px;
-  padding: 20px;
-  color: grey;
-  margin-left: 10px;
-  background-color: #e6e6e6;
+  height: 100px;
+  background-color: #888888;
+  margin-bottom: 40px;
   border-radius: 10px;
 }
-.search-field input{
-  height: 50px;  
+.list-item-table {
   background-color: #e6e6e6;
-}
-.list-item--head {
-  font-size: 16px;
-  font-weight: bold;
-  border-bottom: 2px solid #e21331;
-  border-width: 3px;
-  background-color: #e6e6e6;
-}
-.list-item {
-  background-color: #e6e6e6;
-}
-.footer-row {
-  font-size: 14px;
-  text-align: right;
-  font-weight: bold;
-}
-.footer-numbers {
-  color: #2A4BEE;
-  font-weight: bold;
+  border-radius: 10px;
 }
 .empty-state {
-  margin: 10px;
-  font-size: 14px;
+  text-align: center;
+  margin: 20px;
+  font-size: 40px;
 }
-.cart-items .btn {
-  height: 30px;
+.list-item {
+  font-size: 35px;
+  font-weight: bold;
+  height: 60px;
+  margin-bottom: 10px;
+  color: #444444;
+}
+.list-item--head {
+  height: 100px;
+  font-size: 40px;
+  border-bottom: 5px solid #e21331;
+  background-color: #e6e6e6;
+}
+.input-group-btn {
+  width: 25%;
+}
+.cart-items {
+  margin-bottom: 20px;
+}
+.cart-items .btn, .cart-items .form-control {
+  height: 50px;
   border-radius: 10px;
   font-family: "Poppins";
-  font-size: 20px;
-  font-weight: 700;
+  font-size: 35px;
+  font-weight: bolder;
+  margin: 0;
+}
+.list-item .rate, .list-item .amount {
+  justify-content: flex-end;
+}
+.footer-row {
+  font-size: 35px;
+  color: #e21331;
+  font-weight: bold;
+  justify-content: flex-end;
+}
+.footer-numbers {
+  font-size: 35px;
+  color: #2a4bee;
+  font-weight: bold;
+  justify-content: flex-end;
+}
+
+/* Payment Screen */
+.qrcode {
+  margin: auto;
+  display: block;
+  max-width: 500px;
+  max-height: 500px;
+}
+.payment-screen form {
+  font-size: 50px;
+  font-weight: bolder;  
+}
+.mop-container {
+  background-color: #e6e6e6;
+  margin-bottom: 40px;
+}
+
+.mop-container [type=radio] {
+  width: 40px;
+  height: 40px;
+}
+.mop-container [type=radio]::before {
+  transform: scale(0);
+  transition: 120ms transform ease-in-out;
+  box-shadow: inset 1em 1em var(--form-control-color);
+  /* Windows High Contrast Mode */
+  background-color: CanvasText;
+}
+.mop-container [type=radio]:checked::before {
+  transform: scale(1);
+  background-color: #fff;
+  border: 2px solid #e21331;
+}
+
+/* Modals */
+.modal.in, .modal-dialog {
+  top: 20%;
   width: 100%;
-  margin-bottom: 10px;
+  font-size: 40px;
+  padding-left: 20px;
+  padding-right: 20px;
+}
+.modal-dialog h4, .modal-dialog .btn {
+  font-size: 40px;
+  height: 50px;
+  line-height: 1;
+}
+.modal-header {
+  font-size: 30px;
+  height: 100px;
+}
+.modal-dialog .btn {
+  font-size: 35px;
+  font-weight: bold;
+}
+.modal-body {
+  font-size: 35px;
+}
+.modal-body .control-label, .modal-body .control-label, .modal-body .awesomplete input {
+  font-size: 30px;
+  height: 50px;
+}
+.modal-body .awesomplete > ul > li {
+  font-size: 30px;
 }
