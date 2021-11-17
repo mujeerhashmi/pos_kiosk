@@ -344,7 +344,6 @@ erpnext.pos.PointOfSale = class PointOfSale {
 			frm.refresh(name);
 			frm.doc.items = [];
 			frm.doc.is_pos = 1;
-			frm.doc.pos_profile = "Pos Kiosk";
 
 			return frm;
 		}
@@ -359,6 +358,22 @@ erpnext.pos.PointOfSale = class PointOfSale {
 			return;
 		}
 
+		// We need fetch this for setting print format in an offline POS system
+		frappe.xcall("erpnext.stock.get_item_details.get_pos_profile",
+			{
+				'company': this.frm.doc.company,
+				'pos_profile': 'Pos Kiosk'
+			})
+			.then((r) => {
+				console.log("get_pos_profile",r);
+				if(r) {
+					this.frm.doc.pos_profile = r.name;
+					this.frm.meta.default_print_format = r.print_format || "";					
+				} else {
+					this.raise_exception_for_pos_profile();
+				}
+		});
+
 		return new Promise(resolve => {
 			return this.frm.call({
 				doc: this.frm.doc,
@@ -372,9 +387,8 @@ erpnext.pos.PointOfSale = class PointOfSale {
 					this.frm.script_manager.trigger("update_stock");
 					frappe.model.set_default_values(this.frm.doc);
 					this.frm.cscript.calculate_taxes_and_totals();
-
+					
 					if (r.message) {
-						this.frm.meta.default_print_format = r.message.print_format || "";
 						this.frm.allow_edit_rate = r.message.allow_edit_rate;
 						this.frm.allow_edit_discount = r.message.allow_edit_discount;
 						this.frm.doc.campaign = r.message.campaign;
@@ -384,6 +398,10 @@ erpnext.pos.PointOfSale = class PointOfSale {
 				resolve();
 			});
 		});
+	}
+
+	raise_exception_for_pos_profile() {
+		frappe.throw(__("POS Profile is required to use Point-of-Sale"));
 	}
 
 	make_items() {		
