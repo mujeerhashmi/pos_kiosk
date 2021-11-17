@@ -161,7 +161,11 @@ body {
   margin: 0;
 }
 .list-item .rate, .list-item .amount {
-  justify-content: flex-end;
+  justify-content: flex-end;  
+}
+.list-item .item-name {
+  display: inline-block;
+  overflow-wrap: break-word;
 }
 .footer-row {
   font-size: 35px;

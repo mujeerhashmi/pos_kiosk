@@ -54,7 +54,7 @@ erpnext.pos.PointOfSale = class PointOfSale {
 						<button type="button" class="col-lg-4 btn btn-success register">Register</button>
 					</div>
 					<img class="cart-logo" src="/assets/pos_kiosk/images/pharma_cart.png">
-					<input type="number" class="form-control text-field customer-phone" placeholder="Enter Phone Number" autofocus />
+					<input type="text" class="form-control text-field customer-phone" placeholder="Enter Phone Number" autofocus />
 					<button type="button" class="btn btn-danger continue">START</button>
 					<button type="button" class="btn btn-warning without-registration">START AS GUEST</button>				
 				</div>
@@ -254,7 +254,7 @@ erpnext.pos.PointOfSale = class PointOfSale {
 			// 	indicator: "red",
 			// 	message: __("Please Enter Your Phone Number"),
 			// });        
-		} else {        
+		} else {
 			frappe.call({
 				method: "pos_kiosk.pos_kiosk.page.kiosk.kiosk.make_customer",
 				args: {
@@ -274,7 +274,7 @@ erpnext.pos.PointOfSale = class PointOfSale {
 						// 	message: __("You are Successfully Registered"),
 						// });
 						me.wrapper.find(".registration-screen").css("display", "none");
-						me.make_new_invoice(r.message, me);
+						me.go_to_launch();						
 					}
 				}
 			});
@@ -344,7 +344,7 @@ erpnext.pos.PointOfSale = class PointOfSale {
 			frm.refresh(name);
 			frm.doc.items = [];
 			frm.doc.is_pos = 1;
-			// frm.doc.pos_profile = "kiosk";
+			frm.doc.pos_profile = "Pos Kiosk";
 
 			return frm;
 		}
@@ -1013,9 +1013,6 @@ class POSCart {
 			$item.removeClass(remove_class);
 		} else {
 			$item.remove();
-			if (this.$cart_items.length == 1) {
-				this.$empty_state.show();
-			}
 		}
 	}
 
