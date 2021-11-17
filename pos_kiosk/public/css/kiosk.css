@@ -5,6 +5,7 @@ body {
   height: 100%;
   padding: 15px;
   opacity: 90%;
+  color: #2a4bee;
 }
 .page-head {
   display: none;
@@ -13,26 +14,25 @@ body {
   border: none;
 }
 .small-heading {
-  font-size: 35px;
+  font-size: 40px;
   font-family: 'Raleway';
   margin-bottom: 0px;
   font-weight: bold;
 }
 .big-heading {
   font-family: 'Poppins';
-  font-size: 55px;
+  font-size: 80px;
   margin-bottom: 40px;
   font-weight: bolder;
+  text-align: center;
 }
-
+.btn-success {
+  background-color: #25D366;
+  border-color: #25D366;
+}
 /* Launch Screen */
 .logo-container {
   margin-top: 40px;
-}
-.logo-container h1 {
-  font-size: 50px;
-  font-weight: bold;  
-  text-align: center;
 }
 .logo {
   margin: auto;
@@ -60,6 +60,13 @@ body {
   width: 100%;
   margin-bottom: 20px;
 }
+.launch-screen .btn:hover,
+.registration-screen .btn:hover,
+.cart-screen .btn:hover,
+.payment-screen .btn:hover{
+  color: #fff !important;
+  text-decoration: none;
+}
 .text-field {
   background-color: #888888;
   color: white;
@@ -74,7 +81,7 @@ body {
   margin-bottom: 40px;
 }
 .launch-screen .register {
-  width: 25%;
+  width: 40%;
   margin-bottom: 40px;
 }
 .launch-screen .without-registration {
@@ -93,7 +100,7 @@ body {
 .cart-screen .cancel-cart {
   height: 100px;
   float: right;
-  width: 25%;  
+  width: 30%;
   text-align: center;
 }
 .cart-screen .submit-cart {
@@ -108,13 +115,11 @@ body {
   font-size: 50px;
   font-family: "Poppins";
   font-weight: bold;
-  color: #666666;
 }
 .customer-field {
   font-family: "Poppins";
   font-size: 50px;
   font-weight: bolder;
-  color: black;
 }
 .search-field input {
   color: white;
@@ -191,8 +196,7 @@ body {
   font-size: 50px;
   font-weight: bolder;  
 }
-.mop-container {
-  background-color: #e6e6e6;
+.mop-container, .qrcode-container, .form-check-inline {
   margin-bottom: 40px;
 }
 

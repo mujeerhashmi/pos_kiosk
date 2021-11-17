@@ -44,7 +44,7 @@ erpnext.pos.PointOfSale = class PointOfSale {
 		this.wrapper.append(`
 		<div class="container">
 			<div class="logo-container">
-				<h1>Welcome to Balsam Pharmacy</h1>
+				<h1 class="big-heading">Welcome to Balsam Pharmacy</h1>
 				<img class="logo" src="/assets/pos_kiosk/images/logo.png">
 			</div>
 
@@ -54,23 +54,23 @@ erpnext.pos.PointOfSale = class PointOfSale {
 						<button type="button" class="col-lg-4 btn btn-success register">Register</button>
 					</div>
 					<img class="cart-logo" src="/assets/pos_kiosk/images/pharma_cart.png">
-					<input type="text" class="form-control text-field customer-phone" placeholder="Enter Phone Number" autofocus />
+					<input type="number" class="form-control text-field customer-phone" placeholder="Enter Phone Number" autofocus />
 					<button type="button" class="btn btn-danger continue">START</button>
-					<button type="button" class="btn btn-warning without-registration">START AS GUEST</button>				
+					<button type="button" class="btn btn-success without-registration">START AS GUEST</button>				
 				</div>
 
 				<div class="registration-screen">
 					<h3 class="small-heading">Please Enter</h3>
 					<h1 class="big-heading">Your Details</h1>
 					<div class="register-form">
-						<input type="text" class="form-control text-field register-customer-phone" placeholder="Enter Phone Number" autofocus/>								
+						<input type="number" class="form-control text-field register-customer-phone" placeholder="Enter Phone Number" autofocus/>								
 						<input type="text" class="form-control text-field register-customer-name" placeholder="Enter Full Name" />					
 					</div>
 					<button type="button" class="btn btn-danger submit-customer">SUBMIT</button>
 					<button type="button" class="btn btn-success register-btn-back">HOME</button>
 				</div>
 
-				<div class="cart-screen">				
+				<div class="cart-screen">
 					<div class="row">						
 						<button type="button" class="btn btn-danger cancel-cart">CANCEL</button>
 					</div>					
@@ -99,9 +99,12 @@ erpnext.pos.PointOfSale = class PointOfSale {
 					</form>					
 					<div class="row qrcode-container">
 						<h1 class="big-heading text-center">
-							Scan QR Code
+							Scan To Pay
 						</h1>
 						<img class="qrcode" src="/assets/pos_kiosk/images/qr.jpeg">
+						<h3 class="small-heading text-center">
+							Benefit Pay 33142118
+						</h3>
 						<h1 class="big-heading text-center">
 							BH18FIBH11301059440020
 						</h1>
@@ -150,7 +153,7 @@ erpnext.pos.PointOfSale = class PointOfSale {
 
 		this.wrapper.on("click", ".without-registration", function () {
 			me.wrapper.find(".launch-screen").css("display", "none");
-			me.make_new_invoice("Guest", me);
+			me.make_new_invoice("", me);
 		});
 
 		this.wrapper.on("click", ".register", function () {
@@ -192,7 +195,7 @@ erpnext.pos.PointOfSale = class PointOfSale {
 		me.wrapper.on("click", ".cancel-payment", function() {   
 			me.wrapper.find(".payment-screen").css("display", "none");
 			me.wrapper.find(".cart-screen").css("display", "block");
-			me.items.search_field.$input.focus();			
+			me.items.search_field.$input.focus();
 		});
 
 		me.wrapper.on("click", ".form-check-input", function() {
@@ -293,10 +296,10 @@ erpnext.pos.PointOfSale = class PointOfSale {
 					method: "frappe.client.get",
 					args: {
 						doctype: "Customer",
-						name: customer
+						name: customer || me.frm.doc.customer
 					}, callback: function (data) {
-						me.frm.set_value('customer', customer);
-						me.wrapper.find('.customer-field').append(data.message.customer_name);
+						me.frm.set_value('customer', customer || me.frm.doc.customer);
+						me.wrapper.find('.customer-field').append(data.message.name);
 					}
 				});
 			},
@@ -304,7 +307,7 @@ erpnext.pos.PointOfSale = class PointOfSale {
 				if (this.cart) {
 					this.cart.frm = this.frm;
 					this.cart.reset();
-					this.items.search_field.$input.focus();
+					this.items.reset_search_field();
 				} else {					
 					this.make_items();
 					this.make_cart();
@@ -368,7 +371,8 @@ erpnext.pos.PointOfSale = class PointOfSale {
 				console.log("get_pos_profile",r);
 				if(r) {
 					this.frm.doc.pos_profile = r.name;
-					this.frm.meta.default_print_format = r.print_format || "";					
+					this.frm.meta.default_print_format = r.print_format || "";
+					this.frm.set_value('customer', r.customer || "");
 				} else {
 					this.raise_exception_for_pos_profile();
 				}
@@ -418,15 +422,15 @@ erpnext.pos.PointOfSale = class PointOfSale {
 				}
 			}
 		});
-	}	
+	}
 
 	make_cart() {
 		this.cart = new POSCart({
 			frm: this.frm,
 			wrapper: this.wrapper.find('.cart-container'),
 			events: {				
-				on_field_change: (item_code, batch_no, field, value) => {
-					this.update_item_qty_in_cart(item_code, batch_no, field, value);
+				on_field_change: (item_code, batch_no, field, value) => {					
+					this.update_item_qty_in_cart(item_code, batch_no, field, value);					
 				},
 				on_numpad: (value) => {
 					if (value == __('Pay')) {
@@ -465,7 +469,7 @@ erpnext.pos.PointOfSale = class PointOfSale {
 					// update cart
 					this.update_cart_data(item);
 				});
-		}
+		}		
 	}
 
 	update_item_in_cart(item_code, field='qty', value=1, batch_no) {
@@ -640,6 +644,7 @@ erpnext.pos.PointOfSale = class PointOfSale {
 		this.cart.update_taxes_and_totals();
 		this.cart.update_grand_total();
 		this.cart.update_qty_total();
+		this.items.reset_search_field();
 		frappe.dom.unfreeze();
 	}
 
@@ -710,13 +715,17 @@ erpnext.pos.PointOfSale = class PointOfSale {
 		this.wrapper.find(".mop-container").empty();
 		this.wrapper.find(".qrcode-container").css("display", "none");
 		this.wrapper.find(".payment-screen").css("display", "block");
-				
+		
+		this.wrapper.find('.submit-payment').text("PAY  " +
+			format_currency(this.frm.doc.grand_total, this.frm.currency)
+		);
 		this.frm.doc.payments.forEach((p) => {
 			let id=p.mode_of_payment.replace(" ","_");
 			this.wrapper.find(".mop-container").append(
 				`<div class="form-check-inline">
 					<label class="form-check-label">
-						<input type="radio" class="form-check-input" name="payment_method" value="${p.mode_of_payment}">
+						<input type="radio" class="form-check-input" 
+							name="payment_method" value="${p.mode_of_payment}" `+(p.default ? `checked` : ``)+`>
 						${__(p.mode_of_payment)}
 					</label>
 				</div>
@@ -805,8 +814,8 @@ class POSCart {
 						</div>
 					</div>
 				</div>
-				<div class="row form-group">
-					<button type="button" class="btn btn-success submit-cart">PRESS TO PAY</button>					
+				<div class="row">
+					<button type="button" class="btn btn-success submit-cart">PROCEED TO PAY 0.0</button>
 				</div>
 			</div>
 		`);
@@ -817,7 +826,7 @@ class POSCart {
 		this.$taxes_and_totals = this.wrapper.find('.taxes-and-totals');
 		this.$discount_amount = this.wrapper.find('.discount-amount');
 		this.$grand_total = this.wrapper.find('.grand-total');
-		this.$qty_total = this.wrapper.find('.quantity-total');
+		this.$qty_total = this.wrapper.find('.quantity-total');		
 
 		// this.toggle_taxes_and_totals(false);
 		// this.$grand_total.on('click', () => {
@@ -953,6 +962,10 @@ class POSCart {
 
 		this.$grand_total.find('.rounded-total-value').text(
 			format_currency(this.frm.doc.rounded_total, this.frm.currency)
+		);
+
+		this.wrapper.find('.submit-cart').text("PROCEED TO PAY  " +
+			format_currency(this.frm.doc.grand_total, this.frm.currency)
 		);
 	}
 
