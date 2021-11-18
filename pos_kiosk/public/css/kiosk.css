@@ -30,6 +30,17 @@ body {
   background-color: #25D366;
   border-color: #25D366;
 }
+.btn-success:hover {
+  text-decoration: none;
+  background-color: #25D366 !important;
+  color: white !important;
+}
+.btn-danger:hover {
+  text-decoration: none;
+  background-color: #ff5858 !important;
+  color: white !important;
+}
+
 /* Launch Screen */
 .logo-container {
   margin-top: 40px;
@@ -59,13 +70,6 @@ body {
   font-weight: bolder;
   width: 100%;
   margin-bottom: 20px;
-}
-.launch-screen .btn:hover,
-.registration-screen .btn:hover,
-.cart-screen .btn:hover,
-.payment-screen .btn:hover{
-  color: #fff !important;
-  text-decoration: none;
 }
 .text-field {
   background-color: #888888;
