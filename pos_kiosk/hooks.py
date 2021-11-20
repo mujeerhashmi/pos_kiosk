@@ -119,7 +119,7 @@ app_license = "MIT"
 # Overriding Whitelisted Methods
 # ------------------------------
 #
-override_whitelisted_methods = {
-	"erpnext.stock.get_item_details.get_item_details": "pos_kiosk.api.item.get_item_details"  # noqa
-}
+# override_whitelisted_methods = {
+# 	"pos_bahrain.api.get_item_details.get_item_details": "pos_kiosk.api.item.get_item_details"  # noqa
+# }
 

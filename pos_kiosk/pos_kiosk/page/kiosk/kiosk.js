@@ -135,13 +135,13 @@ erpnext.pos.PointOfSale = class PointOfSale {
 		this.connection_status = false;
 		this.page.set_indicator(__("Offline"), "grey");
 		frappe.call({
-		method: "frappe.handler.ping",
-		callback: (r) => {
-			if (r.message) {
-			this.connection_status = true;
-			this.page.set_indicator(__("Online"), "green");
-			}
-		},
+			method: "frappe.handler.ping",
+			callback: (r) => {
+				if (r.message) {
+				this.connection_status = true;
+				this.page.set_indicator(__("Online"), "green");
+				}
+			},
 		});
 	}
 
@@ -430,7 +430,8 @@ erpnext.pos.PointOfSale = class PointOfSale {
 			wrapper: this.wrapper.find('.cart-container'),
 			events: {				
 				on_field_change: (item_code, batch_no, field, value) => {					
-					this.update_item_qty_in_cart(item_code, batch_no, field, value);					
+					this.update_item_qty_in_cart(item_code, batch_no, field, value);
+					this.items.reset_search_field();
 				},
 				on_numpad: (value) => {
 					if (value == __('Pay')) {
@@ -472,17 +473,18 @@ erpnext.pos.PointOfSale = class PointOfSale {
 		}		
 	}
 
-	update_item_in_cart(item_code, field='qty', value=1, batch_no) {
+	async update_item_in_cart(selected_item, field='qty', value=1, batch_no) {
 		frappe.dom.freeze();
+		var me = this;
+		const item_code = selected_item.item_code;
+		console.log("update_item_in_cart args", item_code, field, value, batch_no);
 		if(this.cart.exists(item_code, field == 'batch_no'? batch_no=value: '')) {
 			const search_field = batch_no ? 'batch_no' : 'item_code';
-			const search_value = batch_no || item_code;
-			console.log(search_field, search_value);
-			const item = this.frm.doc.items.find(i => i[search_field] === search_value);			
+			const search_value = batch_no || item_code;			
+			console.log("Searching in",this.frm.doc.items);
+			const item = this.frm.doc.items.find(i => i[search_field] === search_value);
 			frappe.flags.hide_serial_batch_dialog = false;
-
-			console.log("Existing Item");
-			console.log(item);
+			console.log("Found Existing Item", item);			
 			if (!item) {
 				frappe.throw(__("The Cart and Form Items Differ"));
 			}
@@ -522,48 +524,62 @@ erpnext.pos.PointOfSale = class PointOfSale {
 		if (in_list(['serial_no', 'batch_no'], field)) {
 			args[field] = value;
 		}
-
 		// add to cur_frm
 		let item = this.frm.add_child('items', args);
-		frappe.flags.hide_serial_batch_dialog = true;
-		
-		// await this.update_item_details(this.frm.doc, item.doctype, item.name, field === 'batch_no'? value: None);
+		frappe.flags.hide_serial_batch_dialog = true;		
 		
 		console.log("New Item", item);
-		// if (field === 'batch_no') {
-		// 	let tries = 0;
-		// 	const wait_for_item_code_event = setInterval(() => {
-		// 		const { doctype: cdt, name: cdn } = item;
-		// 		const { batch_no } = frappe.get_doc(cdt, cdn);
-		// 		if (batch_no !== value || tries > 600) {
-		// 			frappe.model.set_value(cdt, cdn, 'batch_no', value);															
-		// 			console.log("New Item Reloaded",item);
-		// 		} else {
-		// 			this.update_cart_data(item);
-		// 			console.log("Tries",tries);
-		// 			clearInterval(wait_for_item_code_event);
-		// 		}
-		// 		tries++;
-		// 	}, 300);
-		// }
 		
-		frappe.run_serially([
-			() => this.frm.script_manager.trigger('item_code', item.doctype, item.name),			
-			() => {
-				const show_dialog = item.has_serial_no || item.has_batch_no;
-
-				// if actual_batch_qty and actual_qty if then there is only one batch. In such
-				// a case, no point showing the dialog
-				if (show_dialog && field == 'qty' && ((!item.batch_no && item.has_batch_no) ||
-					(item.has_serial_no) || (item.actual_batch_qty != item.actual_qty)) ) {
-					// check has serial no/batch no and update cart
-					this.select_batch_and_serial_no(item, 1);
-				} else {
-					// update cart
-					this.update_cart_data(item);
+		args = {
+			'doctype' : this.frm.doc.doctype,
+			'item_code' : item.item_code,
+			'customer' : this.frm.doc.customer,
+			'company' : this.frm.doc.company,
+			'update_stock' : this.frm.doc.update_stock,
+			'set_warehouse': this.frm.doc.set_warehouse,
+			'conversion_rate': this.frm.doc.conversion_rate,
+			'price_list': this.frm.doc.selling_price_list || this.frm.doc.buying_price_list,
+			'price_list_currency': this.frm.doc.price_list_currency,
+			'plc_conversion_rate': this.frm.doc.plc_conversion_rate,
+			'is_pos': cint(this.frm.doc.is_pos),
+			'name': this.frm.doc.name,
+			'stock_uom': item.stock_uom,
+			'qty': 1,
+			'pos_profile': this.frm.doc.doctype == 'Sales Invoice' ? this.frm.doc.pos_profile : ''
+		};
+		if (in_list(['serial_no', 'batch_no'], field)) {
+			args[field] = value;
+		}
+		await frappe.call({
+			method: "erpnext.stock.get_item_details.get_item_details",
+			child: item,
+			args: {args: args},
+			callback: function(r) {
+				if (r.message) {
+					$.each(r.message, function(k, v) {
+						if(!item[k]) item[k] = v;
+					});					
+					frappe.run_serially([
+						() => me.frm.script_manager.trigger("price_list_rate", item.doctype, item.name),
+						() => me.frm.script_manager.trigger("batch_no", item.doctype, item.name),
+						() => {
+							const show_dialog = item.has_serial_no || item.has_batch_no;
+			
+							// if actual_batch_qty and actual_qty if then there is only one batch. In such
+							// a case, no point showing the dialog
+							if (show_dialog && field == 'qty' && ((!item.batch_no && item.has_batch_no) ||
+								(item.has_serial_no) || (item.actual_batch_qty != item.actual_qty)) ) {
+								// check has serial no/batch no and update cart
+								me.select_batch_and_serial_no(item, 1);
+							} else {
+								// update cart
+								me.update_cart_data(item);
+							}
+						}
+					]);
 				}
 			}
-		]);
+		});
 	}
 
 	select_batch_and_serial_no(row, new_item) {
@@ -588,49 +604,30 @@ erpnext.pos.PointOfSale = class PointOfSale {
 			}
 		}],
 		function(values){
-			if (me.cart.exists(row.item_code, values.batch_no)) {				
-				console.log("select_batch_and_serial_no: Old Batch");
-				console.log(values.batch_no, row);
-				row.batch_no = values.batch_no;
-				row.qty += 1;
-				me.update_item_in_frm(row, 'qty', row.qty)
-					.then(() => {
-						// update cart
-						me.update_cart_data(row);
-					});
+			me.items.reset_search_field();
+			if (me.cart.exists(row.item_code, values.batch_no)) {
+				// console.log("select_batch_and_serial_no: Old Batch", values.batch_no, row);
+				row = me.frm.doc.items.find(i => i.batch_no === values.batch_no);
+				console.log("select_batch_and_serial_no: Old Batch", values.batch_no, me.frm.doc.items);
+				row.qty += 1;				
 			} else {
-				console.log("select_batch_and_serial_no: New Batch");
 				if (!new_item) {
-					let args = { item_code: row.item_code, batch_no: values.batch_no};
-					row = me.frm.add_child('items', args);
-					me.frm.script_manager.trigger('item_code', row.doctype, row.name);
-				} else {
-					row.batch_no = values.batch_no;
+					row = me.frm.add_child('items', { ...row});
+					frappe.flags.hide_serial_batch_dialog = true;
+					console.log("select_batch_and_serial_no: Adding Item", row);
 				}
-				console.log(values.batch_no,row);
-				me.update_cart_data(row);
+				row.batch_no = values.batch_no;
+				me.frm.script_manager.trigger("price_list_rate", row.doctype, row.name);
+				me.frm.script_manager.trigger("batch_no", row.doctype, row.name);
+				console.log("select_batch_and_serial_no", values.batch_no,row);
 			}
-						
+			refresh_field("items");
+			me.update_item_in_frm(row, 'qty', row.qty)
+				.then(() => {
+					// update cart
+					me.update_cart_data(row);
+				});
 		}, __('Select Batch No'))
-
-		// erpnext.show_serial_batch_selector(this.frm, row, () => {
-		// 	this.frm.doc.items.forEach(item => {
-		// 		this.update_item_in_frm(item, 'qty', item.qty)
-		// 			.then(() => {
-		// 				// update cart
-		// 				frappe.run_serially([
-		// 					() => {
-		// 						if (item.qty === 0) {
-		// 							frappe.model.clear_doc(item.doctype, item.name);
-		// 						}
-		// 					},
-		// 					() => this.update_cart_data(item)
-		// 				]);
-		// 			});
-		// 	})
-		// }, () => {
-		// 	this.on_close(row);
-		// }, true);
 	}
 
 	on_close(item) {
@@ -849,6 +846,7 @@ class POSCart {
 			format_currency(this.frm.doc.grand_total, this.frm.currency));
 		this.wrapper.find('.rounded-total-value').text(
 			format_currency(this.frm.doc.rounded_total, this.frm.currency));
+		this.wrapper.find('.submit-cart').text("PROCEED TO PAY 0.0");			
 		this.$qty_total.find(".quantity-total").text(total_item_qty);
 
 		if (this.numpad) {
@@ -1330,23 +1328,22 @@ class POSItems {
 
 	set_item_in_the_cart(items, serial_no, batch_no, barcode) {
 		if (serial_no) {
-			this.events.update_cart(items[0].item_code,
+			this.events.update_cart(items[0],
 				'serial_no', serial_no);
 			this.reset_search_field();
 			return;
 		}
 
 		if (batch_no) {
-			console.log("set_item_in_the_cart");
-			console.log(batch_no);
-			this.events.update_cart(items[0].item_code,
+			console.log("set_item_in_the_cart", batch_no);
+			this.events.update_cart(items[0],
 				'batch_no', batch_no);
 			this.reset_search_field();
 			return;
 		}
 
 		if (items.length === 1 && (serial_no || batch_no || barcode || items[0].item_code)) {
-			this.events.update_cart(items[0].item_code,
+			this.events.update_cart(items[0],
 				'qty', '+1');
 			this.reset_search_field();
 		}
