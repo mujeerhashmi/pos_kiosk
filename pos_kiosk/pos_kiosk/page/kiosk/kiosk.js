@@ -181,7 +181,6 @@ erpnext.pos.PointOfSale = class PointOfSale {
 
 		me.wrapper.on("click", ".submit-payment", function() {
 			var selectedOption = $("input[name=payment_method]:checked").val();
-			console.log("submit-payment",selectedOption, me.frm.doc.grand_total);
 			$.each(me.frm.doc.payments, function(i, data) {
 				if (__(data.mode_of_payment) == __(selectedOption)) {
 					frappe.model.set_value('Sales Invoice Payment', data.name, 'amount', me.frm.doc.grand_total);
@@ -199,7 +198,6 @@ erpnext.pos.PointOfSale = class PointOfSale {
 		});
 
 		me.wrapper.on("click", ".form-check-input", function() {
-			console.log($(this),$(this).val());
 			if ($(this).val() == "Benefit Pay") {
 				me.wrapper.find(".qrcode-container").css("display", "block");
 			} else {
@@ -368,7 +366,6 @@ erpnext.pos.PointOfSale = class PointOfSale {
 				'pos_profile': 'Pos Kiosk'
 			})
 			.then((r) => {
-				console.log("get_pos_profile",r);
 				if(r) {
 					this.frm.doc.pos_profile = r.name;
 					this.frm.meta.default_print_format = r.print_format || "";
@@ -455,10 +452,8 @@ erpnext.pos.PointOfSale = class PointOfSale {
 		let item = {};
 		if (batch_no) {
 			item = this.frm.doc.items.find(i => i['batch_no'] === batch_no);			
-			console.log("update_item_qty_in_cart",batch_no,item);
 		} else {
 			item = this.frm.doc.items.find(i => i['item_code'] === item_code);
-			console.log("update_item_qty_in_cart",item);
 		}
 		if (item) {
 			if (typeof value === 'string') {
@@ -476,19 +471,13 @@ erpnext.pos.PointOfSale = class PointOfSale {
 	async update_item_in_cart(selected_item, field='qty', value=1, batch_no) {
 		frappe.dom.freeze();
 		var me = this;
-		const item_code = selected_item.item_code;
-		console.log("update_item_in_cart args", item_code, field, value, batch_no);
+		const item_code = selected_item.item_code;		
 		if(this.cart.exists(item_code, field == 'batch_no'? batch_no=value: '')) {
 			const search_field = batch_no ? 'batch_no' : 'item_code';
-			const search_value = batch_no || item_code;			
-			console.log("Searching in",this.frm.doc.items);
+			const search_value = batch_no || item_code;
 			const item = this.frm.doc.items.find(i => i[search_field] === search_value);
 			frappe.flags.hide_serial_batch_dialog = false;
-			console.log("Found Existing Item", item);			
-			if (!item) {
-				frappe.throw(__("The Cart and Form Items Differ"));
-			}
-			
+						
 			if (typeof value === 'string' && !in_list(['serial_no', 'batch_no'], field)) {
 				// value can be of type '+1' or '-1'
 				value = item[field] + flt(value);
@@ -526,9 +515,7 @@ erpnext.pos.PointOfSale = class PointOfSale {
 		}
 		// add to cur_frm
 		let item = this.frm.add_child('items', args);
-		frappe.flags.hide_serial_batch_dialog = true;		
-		
-		console.log("New Item", item);
+		frappe.flags.hide_serial_batch_dialog = true;				
 		
 		args = {
 			'doctype' : this.frm.doc.doctype,
@@ -606,20 +593,16 @@ erpnext.pos.PointOfSale = class PointOfSale {
 		function(values){
 			me.items.reset_search_field();
 			if (me.cart.exists(row.item_code, values.batch_no)) {
-				// console.log("select_batch_and_serial_no: Old Batch", values.batch_no, row);
 				row = me.frm.doc.items.find(i => i.batch_no === values.batch_no);
-				console.log("select_batch_and_serial_no: Old Batch", values.batch_no, me.frm.doc.items);
 				row.qty += 1;				
 			} else {
 				if (!new_item) {
 					row = me.frm.add_child('items', { ...row});
 					frappe.flags.hide_serial_batch_dialog = true;
-					console.log("select_batch_and_serial_no: Adding Item", row);
 				}
 				row.batch_no = values.batch_no;
 				me.frm.script_manager.trigger("price_list_rate", row.doctype, row.name);
 				me.frm.script_manager.trigger("batch_no", row.doctype, row.name);
-				console.log("select_batch_and_serial_no", values.batch_no,row);
 			}
 			refresh_field("items");
 			me.update_item_in_frm(row, 'qty', row.qty)
@@ -1009,16 +992,12 @@ class POSCart {
 		this.$empty_state.hide();
 
 		if (this.exists(item.item_code, item.batch_no)) {
-			console.log("add_item: update quantity",item.item_code, item.batch_no);
 			// update quantity			
 			this.update_item(item);
 		} else if (flt(item.qty) > 0.0) {
 			// add to cart
-			console.log("add_item: add to cart",item.item_code, item.batch_no);
 			const $item = $(this.get_item_html(item));
 			$item.appendTo(this.$cart_items);
-		} else {
-			console.log("add_item: Not updated", flt(item.qty));
 		}
 		this.highlight_item(item.item_code);
 		this.scroll_to_item(item.item_code);
@@ -1335,7 +1314,6 @@ class POSItems {
 		}
 
 		if (batch_no) {
-			console.log("set_item_in_the_cart", batch_no);
 			this.events.update_cart(items[0],
 				'batch_no', batch_no);
 			this.reset_search_field();
