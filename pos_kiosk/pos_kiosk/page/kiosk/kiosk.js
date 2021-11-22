@@ -520,7 +520,7 @@ erpnext.pos.PointOfSale = class PointOfSale {
 			return;
 		}
 		
-		let args = { item_code: item_code };
+		let args = { item_code: item_code, pos_kiosk: 1 };
 		if (in_list(['serial_no', 'batch_no'], field)) {
 			args[field] = value;
 		}
@@ -645,7 +645,7 @@ erpnext.pos.PointOfSale = class PointOfSale {
 		frappe.dom.unfreeze();
 	}
 
-	update_item_in_frm(item, field, value) {
+	update_item_in_frm(item, field, value) {		
 		if (field == 'qty' && value < 0) {
 			frappe.msgprint(__("Quantity must be positive"));
 			value = item.qty;
