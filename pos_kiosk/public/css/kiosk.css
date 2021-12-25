@@ -30,6 +30,10 @@ body {
   background-color: #25D366;
   border-color: #25D366;
 }
+.btn-danger {
+  background-color: red;
+  border-color: red;
+}
 .btn-success:hover {
   text-decoration: none;
   background-color: #25D366 !important;
@@ -37,7 +41,7 @@ body {
 }
 .btn-danger:hover {
   text-decoration: none;
-  background-color: #ff5858 !important;
+  background-color: red !important;
   color: white !important;
 }
 

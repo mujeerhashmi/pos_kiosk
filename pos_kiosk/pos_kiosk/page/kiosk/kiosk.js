@@ -227,15 +227,9 @@ erpnext.pos.PointOfSale = class PointOfSale {
 					}
 				});
 				}           
-			})
-			.catch(err => {
-				frappe.throw(__("You Are Not Registered. Please Register"));
-				// frappe.show_alert({
-				// 	indicator: "orange",
-				// 	message: __(
-				// 		"You Are Not Registered. Please Register"
-				// 	),
-				// });
+			}, (err) => {
+				frappe.msgprint(__("You Are Not Registered. Please Register"));
+				me.$customer_phone[0].value = "";
 			});
 		}
 	}
@@ -699,18 +693,23 @@ erpnext.pos.PointOfSale = class PointOfSale {
 		this.wrapper.find('.submit-payment').text("PAY  " +
 			format_currency(this.frm.doc.grand_total, this.frm.currency)
 		);
+		// this.mop_image_url = '';
 		this.frm.doc.payments.forEach((p) => {
-			let id=p.mode_of_payment.replace(" ","_");
-			this.wrapper.find(".mop-container").append(
-				`<div class="form-check-inline">
-					<label class="form-check-label">
-						<input type="radio" class="form-check-input" 
-							name="payment_method" value="${p.mode_of_payment}" `+(p.default ? `checked` : ``)+`>
-						${__(p.mode_of_payment)}
-					</label>
-				</div>
-				`
-			)
+			frappe.db.get_value("Mode of Payment",p.mode_of_payment, "logo")
+			.then (r => {
+				let mop_image_url = frappe.urllib.get_base_url() + r.message.logo;
+				this.wrapper.find(".mop-container").append(
+					`<div class="form-check-inline">
+						<img src="`+mop_image_url+`" class="float-left" style="width: 30%;">
+						<label class="form-check-label">	
+							<input type="radio" class="form-check-input" 
+								name="payment_method" value="${p.mode_of_payment}" `+(p.default ? `checked` : ``)+`>							
+							${__(p.mode_of_payment)}
+						</label>
+					</div>
+					`
+				)
+			})
 		});
 	}
 

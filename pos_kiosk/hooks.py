@@ -41,7 +41,8 @@ fixtures = [
                 "name",
                 "in",
                 [
-                    "Sales Invoice Item-pos_kiosk"
+                    "Sales Invoice Item-pos_kiosk",
+                    "Mode of Payment-logo"
                 ]
             ]
         ]
